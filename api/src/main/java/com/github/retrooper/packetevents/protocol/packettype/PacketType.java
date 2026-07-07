@@ -104,6 +104,7 @@ import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperCon
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerKeepAlive;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerPing;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerPluginMessage;
+import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerPostEffects;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerRegistryData;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerResetChat;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerResourcePackRemove;
@@ -292,6 +293,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPluginMessage;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPostEffects;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerProjectilePower;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRecipeBookAdd;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRecipeBookRemove;
@@ -955,6 +957,11 @@ public final class PacketType {
              * @versions 1.21.9+
              */
             CODE_OF_CONDUCT(WrapperConfigServerCodeOfConduct.class),
+
+            /**
+             * @versions 26.3+
+             */
+            POST_EFFECTS(WrapperConfigServerPostEffects.class),
             ;
 
             private static int INDEX = 0;
@@ -1613,6 +1620,11 @@ public final class PacketType {
              * @versions 26.1+
              */
             LOW_DISK_SPACE_WARNING(WrapperPlayServerLowDiskSpaceWarning.class),
+
+            /**
+             * @versions 26.3+
+             */
+            POST_EFFECTS(WrapperPlayServerPostEffects.class),
             ;
 
             private static int INDEX = 0;
