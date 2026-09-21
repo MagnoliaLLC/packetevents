@@ -20,6 +20,7 @@ package io.github.retrooper.packetevents.handlers;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.exception.PacketProcessException;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
@@ -76,8 +77,22 @@ public class PacketEventsDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
-        if (byteBuf.isReadable()) {
+        if (!byteBuf.isReadable()) {
+            return;
+        }
+
+        int readerIndex = byteBuf.readerIndex();
+
+        try {
             read(ctx, byteBuf, out);
+        } catch (PacketProcessException exception) {
+            // Same reasoning as the encoder: a packet this cannot classify travels on untouched
+            // rather than reaching Netty as a decoder failure and closing the connection
+            byteBuf.readerIndex(readerIndex);
+            out.add(byteBuf.retain());
+
+            PacketEvents.getAPI().getLogManager().debug("Passed through an unmappable packet: "
+                    + exception.getMessage());
         }
     }
 
