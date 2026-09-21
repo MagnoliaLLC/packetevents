@@ -92,6 +92,7 @@ import java.util.function.Function;
 public class AdventureNBTSerializer implements ComponentSerializer<Component, Component, NBT> {
 
     private static final Set<TextDecoration> DECORATIONS = TextDecoration.NAMES.values();
+    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
     private final ClientVersion version;
     private final boolean downsampleColor;
@@ -773,8 +774,22 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
         } else if (this.downsampleColor) {
             return NamedTextColor.NAMES.key(NamedTextColor.nearestTo(value));
         } else {
-            return String.format(Locale.ROOT, "%c%06X", TextColor.HEX_CHARACTER, value.value());
+            return hexColor(value.value());
         }
+    }
+
+    /**
+     * Writes {@code #RRGGBB} in upper case, exactly as {@code String.format("%c%06X", ...)} did, without the
+     * formatter: it parsed its pattern and allocated its buffers on every call, and this runs for every
+     * colored span of every component written, which made it one of the costliest parts of sending text.
+     */
+    private static @NotNull String hexColor(final int rgb) {
+        final char[] chars = new char[7];
+        chars[0] = TextColor.HEX_CHARACTER;
+        for (int index = 6, remaining = rgb; index > 0; index--, remaining >>>= 4) {
+            chars[index] = HEX_DIGITS[remaining & 0xF];
+        }
+        return new String(chars);
     }
     // -------------------------------------------------
 
