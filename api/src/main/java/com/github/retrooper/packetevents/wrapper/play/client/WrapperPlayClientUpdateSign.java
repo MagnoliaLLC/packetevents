@@ -21,6 +21,7 @@ package com.github.retrooper.packetevents.wrapper.play.client;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.world.blockentity.SignTextSlot;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
@@ -67,7 +68,7 @@ public class WrapperPlayClientUpdateSign extends PacketWrapper<WrapperPlayClient
             this.textLines[i] = readString(384);
         }
         if (this.serverVersion.isNewerThanOrEquals(ServerVersion.V_26_3)) {
-            this.isFrontText = this.readBoolean();
+            this.isFrontText = SignTextSlot.read(this).isFront();
         }
     }
 
@@ -89,7 +90,7 @@ public class WrapperPlayClientUpdateSign extends PacketWrapper<WrapperPlayClient
             writeString(textLines[i]);
         }
         if (this.serverVersion.isNewerThanOrEquals(ServerVersion.V_26_3)) {
-            this.writeBoolean(this.isFrontText);
+            SignTextSlot.write(this, SignTextSlot.ofFront(this.isFrontText));
         }
     }
 
