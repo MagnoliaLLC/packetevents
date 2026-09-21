@@ -20,9 +20,12 @@ package io.github.retrooper.packetevents.handlers;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.exception.InvalidDisconnectPacketSend;
+import com.github.retrooper.packetevents.exception.PacketProcessException;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.EventCreationUtil;
+import com.github.retrooper.packetevents.util.ExceptionUtil;
 import com.velocitypowered.api.proxy.Player;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -65,10 +68,22 @@ public class PacketEventsEncoder extends MessageToByteEncoder<ByteBuf> {
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
         if (!msg.isReadable()) return;
 
+        int readerIndex = msg.readerIndex();
         ByteBuf transformed = ctx.alloc().buffer().writeBytes(msg);
         try {
             read(ctx, transformed);
             out.writeBytes(transformed);
+        } catch (PacketProcessException exception) {
+            // A packet we cannot classify is one no listener could have asked for, so it travels on
+            // untouched. Throwing instead reaches Netty as an EncoderException and closes the
+            // connection - which the proxy does hit legitimately: Velocity queues PLAY packets while
+            // the connection configures and flushes them from handlerRemoved as it switches state,
+            // and that flush can outrun the CONFIGURATION_END this handler learns the new state from.
+            msg.readerIndex(readerIndex);
+            out.writeBytes(msg);
+
+            PacketEvents.getAPI().getLogManager().debug("Passed through an unmappable packet: "
+                    + exception.getMessage());
         } finally {
             transformed.release();
         }
@@ -76,6 +91,11 @@ public class PacketEventsEncoder extends MessageToByteEncoder<ByteBuf> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        // Ignore how mojang sends DISCONNECT packets in the wrong state
+        if (ExceptionUtil.isException(cause, InvalidDisconnectPacketSend.class)) {
+            return;
+        }
+
         super.exceptionCaught(ctx, cause);
     }
 }
