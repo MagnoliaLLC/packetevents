@@ -21,6 +21,7 @@ package com.github.retrooper.packetevents.wrapper.play.server;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.world.blockentity.SignTextSlot;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
@@ -51,7 +52,9 @@ public class WrapperPlayServerOpenSignEditor extends PacketWrapper<WrapperPlaySe
             int z = readInt();
             this.position = new Vector3i(x, y, z);
         }
-        if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_20)) {
+        if (this.serverVersion.isNewerThanOrEquals(ServerVersion.V_26_3)) {
+            this.isFrontText = SignTextSlot.read(this).isFront();
+        } else if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_20)) {
             isFrontText = readBoolean();
         } else {
             isFrontText = true;
@@ -68,7 +71,9 @@ public class WrapperPlayServerOpenSignEditor extends PacketWrapper<WrapperPlaySe
             writeInt(position.y);
             writeInt(position.z);
         }
-        if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_20)) {
+        if (this.serverVersion.isNewerThanOrEquals(ServerVersion.V_26_3)) {
+            SignTextSlot.write(this, SignTextSlot.ofFront(this.isFrontText));
+        } else if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_20)) {
             writeBoolean(isFrontText);
         }
     }
